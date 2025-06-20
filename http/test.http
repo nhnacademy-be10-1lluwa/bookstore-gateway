@@ -3,8 +3,8 @@ POST http://localhost:8080/auth/signup
 Content-Type: application/json
 
 {
-  "email": "테스트입니다324234@google.com",
-  "password": "테스트234234"
+  "email": "테스트입니다@google.com",
+  "password": "테스트"
 }
 
 ### 로그인 요청
