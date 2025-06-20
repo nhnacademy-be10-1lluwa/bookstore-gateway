@@ -1,0 +1,17 @@
+### 회원가입 테스트
+POST http://localhost:8080/auth/signup
+Content-Type: application/json
+
+{
+  "email": "테스트입니다@google.com",
+  "password": "테스트"
+}
+
+### 로그인 요청
+POST http://localhost:8080/auth/login
+Content-Type: application/json
+
+{
+  "email": "테스트입니다@google.com",
+  "password": "테스트"
+}
