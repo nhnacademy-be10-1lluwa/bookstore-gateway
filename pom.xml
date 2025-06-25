@@ -105,6 +105,7 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
         </plugins>
+        <finalName>1lluwa-gateway</finalName>
     </build>
 
 </project>
