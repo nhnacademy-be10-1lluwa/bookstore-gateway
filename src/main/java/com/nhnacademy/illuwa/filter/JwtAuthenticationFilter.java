@@ -2,7 +2,9 @@ package com.nhnacademy.illuwa.filter;
 
 import com.nhnacademy.illuwa.exception.UnauthorizedException;
 import com.nhnacademy.illuwa.jwt.JwtProvider;
+import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpCookie;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
@@ -20,29 +22,36 @@ public class JwtAuthenticationFilter implements WebFilter {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();
-        String authHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
+        HttpCookie cookie = exchange.getRequest().getCookies().getFirst("ACCESS_TOKEN");
+
         // /auth 경로는 인증 제외 (회원 가입, 로그인)
-        if(request.getPath().toString().startsWith("/auth")) {
+        String path = request.getPath().toString();
+        if(path.equals("/auth/login") || path.equals("/auth/signup")) {
             return chain.filter(exchange);
         }
 
-        if(authHeader == null || !authHeader.startsWith("Bearer ")) {
-            throw new UnauthorizedException("Authorization 헤더가 없습니다.");
+        if (cookie == null) {
+            return Mono.error(new UnauthorizedException("쿠키에 토큰이 없습니다."));
         }
 
-        String token = authHeader.substring("Bearer ".length());
-
-        if(!jwtProvider.validateToken(token)) {
-            throw new UnauthorizedException("유효하지 않은 JWT 토큰");
+        String token = cookie.getValue();
+        if (!jwtProvider.validateToken(token)) {
+            return Mono.error(new UnauthorizedException("유효하지 않은 토큰입니다."));
         }
 
+        // jwt 토큰 파싱
         Long userId = jwtProvider.getUserIdFromToken(token);
+        String role = jwtProvider.getRoleFromToken(token);
+
+        if(path.startsWith("/admin") && !"ADMIN".equals(role)) {
+            return Mono.error(new UnauthorizedException("접근 권한이 없습니다."));
+        }
 
         ServerHttpRequest mutatedRequest = request.mutate()
-                        .header("X-USER-ID", userId.toString())
-                        .build();
-        ServerWebExchange mutatedExchange = exchange.mutate().request(mutatedRequest).build();
+                .header("X-USER-ID", userId.toString())
+                .header("X-USER-ROLE", role)
+                .build();
 
-        return chain.filter(mutatedExchange);
+        return chain.filter(exchange.mutate().request(mutatedRequest).build());
     }
 }
