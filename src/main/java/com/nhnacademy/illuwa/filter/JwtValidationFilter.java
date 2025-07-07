@@ -32,7 +32,7 @@ public class JwtValidationFilter implements GlobalFilter {
 
     // 인증 제외(Path 화이트리스트)
     private static final Set<String> WHITE_LIST = Set.of(
-            "/auth", "/login", "/signup", "/static", "/actuator"
+            "/auth", "/login", "/signup", "/static", "/actuator", "/books"
     );
 
     @Override
