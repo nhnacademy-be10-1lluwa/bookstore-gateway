@@ -20,6 +20,7 @@ import reactor.core.scheduler.Schedulers;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -31,7 +32,7 @@ public class JwtValidationFilter implements GlobalFilter {
     private final ObjectProvider<AuthClient> authClientProvider;
 
     // 인증 제외(Path 화이트리스트)
-    private static final Set<String> WHITE_LIST = Set.of(
+    private static final List<String> WHITE_LIST = List.of(
             "/auth", "/login", "/signup", "/static", "/actuator", "/books", "/order/guest/order-history"
     );
 
