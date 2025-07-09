@@ -14,5 +14,5 @@ public class TokenResponse {
     @JsonProperty("refresh_token")
     private String refreshToken;
     @JsonProperty("expires_in")
-    private Long expiresIn;
+    private long expiresIn;
 }
