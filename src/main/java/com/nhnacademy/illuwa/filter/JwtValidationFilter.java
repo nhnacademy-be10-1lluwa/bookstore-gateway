@@ -39,37 +39,34 @@ public class JwtValidationFilter implements GlobalFilter {
             "/books/search",
             "/api/payments",
             "/api/book-reviews",
-            "/api/members/names",
-            "/api/public/categories",
-            "/api/search/category"
+            "/api/members/names"
     );
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-
-        // 화이트 리스트 경로는 패스
-        if(isExcludedPath(exchange.getRequest().getPath().value())) {
-            return chain.filter(exchange);
-        }
-
-        // 토큰 추출 - Authorization 헤더 읽고 -> 없으면 쿠키
         String accessToken = resolveToken(exchange);
-        if(accessToken == null) {
-            return unauthorized(exchange, "토큰이 없습니다.");
+        String requestPath = exchange.getRequest().getPath().value();
+
+        boolean isWhiteListed = isExcludedPath(requestPath);
+
+        if (accessToken == null) {
+            // 토큰 없을 때
+            // 화이트 리스트면 통과
+            return isWhiteListed
+                    ? chain.filter(exchange)
+                    : unauthorized(exchange, "토큰이 없습니다.");
         }
 
-        // 토큰 검증
         try {
             jwtProvider.validateToken(accessToken);
+            return continueWithUserHeaders(accessToken, exchange, chain);
         } catch (ExpiredJwtException e) {
-            // 만료된 경우 -> 재발급 시도
+            // 토큰 만료
             return refreshAndContinue(exchange, chain);
         } catch (JwtException e) {
+            // 위조된 토큰
             return unauthorized(exchange, "위조된 토큰입니다.");
         }
-
-        // 4. 정상 토큰이면 클레임 추출해서 내부 헤더 주입
-        return continueWithUserHeaders(accessToken, exchange, chain);
     }
 
     private Mono<Void> refreshAndContinue(ServerWebExchange exchange, GatewayFilterChain chain) {
