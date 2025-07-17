@@ -34,11 +34,10 @@ public class JwtValidationFilter implements GlobalFilter {
     private static final List<String> WHITE_LIST = List.of(
             "/api/auth", "/api/login", "/api/signup", "/api/members/login",
             "/api/members/inactive", "/api/members/names", "/api/guests",
-            "/api/books", "/api/reviews", "/api/search/category",
+            "/api/books", "/api/search/category",
             "/api/order/guest",
             "/api/payments",
-            "/api/public",
-            "/api/book-reviews" // 임시 추가
+            "/api/public"
     );
 
     @Override
