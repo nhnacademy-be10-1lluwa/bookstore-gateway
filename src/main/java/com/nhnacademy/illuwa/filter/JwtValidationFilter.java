@@ -14,6 +14,8 @@ import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.*;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
@@ -32,16 +34,12 @@ public class JwtValidationFilter implements GlobalFilter {
 
     // 인증 제외(Path 화이트리스트)
     private static final List<String> WHITE_LIST = List.of(
-            "/api/auth", "/api/login", "/api/signup", "/static", "/actuator", "/api/books", "/api/order/guest", "/api/guests",
-            "/api/members/check-status",
-            "/api/members/inactive/verification",
-            "/api/members/inactive/verification/verify",
-            "/books/search",
+            "/api/auth", "/api/login", "/api/signup",
+            "/api/members/inactive", "/api/members/names", "/api/guests",
+            "/api/books", "/api/reviews", "/api/search/category",
+            "/api/order/guest",
             "/api/payments",
-            "/api/book-review/",
-            "/api/members/names",
-            "/api/public/categories",
-            "/api/search/category"
+            "/api/public"
     );
 
     @Override
