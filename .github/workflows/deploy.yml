@@ -3,7 +3,7 @@ name: Deploy gateway to Server
 on:
   push:
     branches:
-      - master
+      - main
 
 jobs:
   deploy:
