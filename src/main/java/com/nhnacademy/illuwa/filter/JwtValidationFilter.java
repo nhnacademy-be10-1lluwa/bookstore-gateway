@@ -37,7 +37,8 @@ public class JwtValidationFilter implements GlobalFilter {
             "/api/books", "/api/search/category",
             "/api/order/guest",
             "/api/payments",
-            "/api/public"
+            "/api/public",
+            "/api-docs"
     );
 
     @Override
