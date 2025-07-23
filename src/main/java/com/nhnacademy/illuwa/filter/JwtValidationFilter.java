@@ -35,7 +35,7 @@ public class JwtValidationFilter implements GlobalFilter {
             "/api/auth", "/api/login", "/api/signup", "/api/members/login",
             "/api/members/inactive-verifications", "/api/members/names", "/api/guests",
             "/api/books", "/api/search/category",
-            "/api/order/guest",
+            "/api/order/guests",
             "/api/payments",
             "/api/public",
             "/docs", "/swagger-ui", "/v3/api-docs", "/swagger-ui.html"
