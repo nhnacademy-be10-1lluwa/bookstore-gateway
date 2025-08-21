@@ -2,8 +2,6 @@ package com.nhnacademy.illuwa.filter;
 
 import com.nhnacademy.illuwa.dto.TokenValidationResult;
 import com.nhnacademy.illuwa.jwt.JwtProvider;
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
@@ -25,7 +23,7 @@ public class JwtValidationFilter implements GlobalFilter {
 
     // 인증 제외(Path 화이트리스트)
     private static final List<String> WHITE_LIST = List.of(
-            "/api/auth", "/api/login", "/api/signup", "/api/members/login",
+            "/api/auth/login", "/api/auth/signup", "/api/members/login",
             "/api/members/inactive-verifications", "/api/members/names", "/api/guests",
             "/api/books", "/api/search/category",
             "/api/order/guests",
