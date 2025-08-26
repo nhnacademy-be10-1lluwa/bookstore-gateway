@@ -5,7 +5,6 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
-import io.jsonwebtoken.security.SignatureException;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,7 +13,6 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StopWatch;
 
-import java.nio.charset.StandardCharsets;
 import java.security.Key;
 
 @Slf4j
@@ -34,21 +32,12 @@ public class JwtProvider {
         this.key = Keys.hmacShaKeyFor(keyBytes);
     }
 
-    public boolean validateToken(String token) {
-        try {
-            Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
-            return true;
-        } catch (SignatureException e) {
-            return false;
-        }
-    }
-
-    public boolean isAccessTokenBlacklisted(String accessToken) {
-        if (accessToken == null || accessToken.isEmpty()) {
-            return false;
-        }
-        return redisTemplate.hasKey("blacklist:access:" + accessToken);
-    }
+//    public boolean isAccessTokenBlacklisted(String accessToken) {
+//        if (accessToken == null || accessToken.isEmpty()) {
+//            return false;
+//        }
+//        return redisTemplate.hasKey("blacklist:access:" + accessToken);
+//    }
 
     public TokenValidationResult validateTokenWithBlacklist(String token) {
         StopWatch sw = new StopWatch("JWT-Validation");
@@ -63,12 +52,12 @@ public class JwtProvider {
                     .getBody();
             sw.stop();
 
-            // 2. 블랙리스트 검증
-            sw.start("AT Blacklist-Check");
-            if (isAccessTokenBlacklisted(token)) {
-                return TokenValidationResult.blacklisted();
-            }
-            sw.stop();
+//            // 2. 블랙리스트 검증
+//            sw.start("AT Blacklist-Check");
+//            if (isAccessTokenBlacklisted(token)) {
+//                return TokenValidationResult.blacklisted();
+//            }
+//            sw.stop();
 
             // 3. 성공
             sw.start("Claims-Processing");
@@ -103,16 +92,5 @@ public class JwtProvider {
 
     public String getRoleFromToken(String token) {
         return getClaims(token).get("role", String.class);
-    }
-
-    // RT 해시 생성 (Auth-Service와 동일)
-    public String hashRefreshToken(String refreshToken) {
-        try {
-            java.security.MessageDigest md = java.security.MessageDigest.getInstance("SHA-256");
-            byte[] digest = md.digest(refreshToken.getBytes(java.nio.charset.StandardCharsets.UTF_8));
-            return java.util.Base64.getUrlEncoder().withoutPadding().encodeToString(digest);
-        } catch (Exception e) {
-            throw new IllegalStateException("RT 해시 생성 실패", e);
-        }
     }
 }
