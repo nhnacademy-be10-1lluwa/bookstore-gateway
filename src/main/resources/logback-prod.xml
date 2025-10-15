@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration scan="true">
 
-    <property name="LOG_PATH" value="/home/be10/be10-team1/deploy/gateway/logs" />
+    <property name="LOG_PATH" value="/home/be10/be10-team1/logs" />
     <property name="APP_NAME" value="gateway" />
 
     <!-- 파일 로그 출력용 -->
