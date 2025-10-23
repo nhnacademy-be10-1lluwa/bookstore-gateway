@@ -37,7 +37,7 @@ public class JwtValidationFilter implements GlobalFilter {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-        String correlationId = extractOrGenerateCorrelationId(exchange);
+        String correlationId = exchange.getRequest().getHeaders().getFirst(CORRELATION_ID_HEADER);
 
         // 1. 화이트리스트 체크
         if(isExcludedPath(exchange.getRequest().getPath().value())) {
@@ -65,29 +65,21 @@ public class JwtValidationFilter implements GlobalFilter {
         return continueWithUserHeaders(accessToken, correlationId ,exchange, chain);
     }
 
-    private String extractOrGenerateCorrelationId(ServerWebExchange exchange) {
-        String correlationId = exchange.getRequest().getHeaders().getFirst(CORRELATION_ID_HEADER);
-        if (correlationId == null || correlationId.isBlank()) {
-            correlationId = UUID.randomUUID().toString();
-        }
-        return correlationId;
-    }
-
     /**
      * 화이트리스트 경로용: Correlation ID만 전달
      */
     private Mono<Void> continueWithCorrelationId(String correlationId, ServerWebExchange exchange, GatewayFilterChain chain) {
-        ServerHttpRequest mutatedRequest = exchange.getRequest().mutate()
-                .header(CORRELATION_ID_HEADER, correlationId)
-                .build();
-        return chain.filter(exchange.mutate().request(mutatedRequest).build());
+        ServerHttpRequest.Builder requestBuilder = exchange.getRequest().mutate();
+        if (correlationId != null && !correlationId.isBlank()) {
+            requestBuilder.header(CORRELATION_ID_HEADER, correlationId);
+        }
+        return chain.filter(exchange.mutate().request(requestBuilder.build()).build());
     }
 
     /**
      * 인증 필요 경로용: User 정보 + Correlation ID 전달
      */
     private Mono<Void> continueWithUserHeaders(String accessToken, String correlationId, ServerWebExchange exchange, GatewayFilterChain chain) {
-
         Long userId = jwtProvider.getUserIdFromToken(accessToken);
         String role   = jwtProvider.getRoleFromToken(accessToken);
 
