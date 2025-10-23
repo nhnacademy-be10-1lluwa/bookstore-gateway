@@ -14,12 +14,14 @@ import reactor.core.publisher.Mono;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
 public class JwtValidationFilter implements GlobalFilter {
 
     private final JwtProvider jwtProvider;
+    private static final String CORRELATION_ID_HEADER = "X-Correlation-ID";
 
     // 인증 제외(Path 화이트리스트)
     private static final List<String> WHITE_LIST = List.of(
@@ -35,6 +37,8 @@ public class JwtValidationFilter implements GlobalFilter {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+        String correlationId = extractOrGenerateCorrelationId(exchange);
+
         // 1. 화이트리스트 체크
         if(isExcludedPath(exchange.getRequest().getPath().value())) {
             return chain.filter(exchange);
@@ -58,10 +62,18 @@ public class JwtValidationFilter implements GlobalFilter {
             }
         }
         // 4. 검증 성공 시 헤더 추가
-        return continueWithUserHeaders(accessToken, exchange, chain);
+        return continueWithUserHeaders(accessToken, correlationId ,exchange, chain);
     }
 
-    private Mono<Void> continueWithUserHeaders(String accessToken, ServerWebExchange exchange, GatewayFilterChain chain) {
+    private String extractOrGenerateCorrelationId(ServerWebExchange exchange) {
+        String correlationId = exchange.getRequest().getHeaders().getFirst(CORRELATION_ID_HEADER);
+        if (correlationId == null || correlationId.isBlank()) {
+            correlationId = UUID.randomUUID().toString();
+        }
+        return correlationId;
+    }
+
+    private Mono<Void> continueWithUserHeaders(String accessToken, String correlationId, ServerWebExchange exchange, GatewayFilterChain chain) {
 
         Long userId = jwtProvider.getUserIdFromToken(accessToken);
         String role   = jwtProvider.getRoleFromToken(accessToken);
@@ -69,6 +81,7 @@ public class JwtValidationFilter implements GlobalFilter {
         ServerHttpRequest mutatedRequest = exchange.getRequest().mutate()
                 .header("X-USER-ID",   String.valueOf(userId))
                 .header("X-USER-ROLE", role)
+                .header(CORRELATION_ID_HEADER, correlationId)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
                 .build();
 
