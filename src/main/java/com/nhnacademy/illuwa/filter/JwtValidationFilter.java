@@ -41,7 +41,7 @@ public class JwtValidationFilter implements GlobalFilter {
 
         // 1. 화이트리스트 체크
         if(isExcludedPath(exchange.getRequest().getPath().value())) {
-            return chain.filter(exchange);
+            return continueWithCorrelationId(correlationId, exchange, chain);
         }
 
         // 2. 토큰 추출
@@ -73,6 +73,19 @@ public class JwtValidationFilter implements GlobalFilter {
         return correlationId;
     }
 
+    /**
+     * 화이트리스트 경로용: Correlation ID만 전달
+     */
+    private Mono<Void> continueWithCorrelationId(String correlationId, ServerWebExchange exchange, GatewayFilterChain chain) {
+        ServerHttpRequest mutatedRequest = exchange.getRequest().mutate()
+                .header(CORRELATION_ID_HEADER, correlationId)
+                .build();
+        return chain.filter(exchange.mutate().request(mutatedRequest).build());
+    }
+
+    /**
+     * 인증 필요 경로용: User 정보 + Correlation ID 전달
+     */
     private Mono<Void> continueWithUserHeaders(String accessToken, String correlationId, ServerWebExchange exchange, GatewayFilterChain chain) {
 
         Long userId = jwtProvider.getUserIdFromToken(accessToken);
